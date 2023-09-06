@@ -1,0 +1,26 @@
+.tool-bar {
+  display: flex;
+  justify-content: space-between;
+  height:100px;
+}
+
+.links {
+  display: flex;
+}
+
+.links div {
+  padding: 0 5px;
+}
+
+.link{
+  font-size: 22px;
+  transition: all 0.3s ease;
+
+}
+.link:hover{
+  font-size: 24px;
+  cursor: pointer;
+}
+.active{
+  color: honeydew;
+}
