@@ -1,4 +1,10 @@
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import {
+  ChangeDetectorRef,
+  Component,
+  OnDestroy,
+  OnInit,
+  ViewChild,
+} from '@angular/core';
 import { ActivatedRoute, NavigationExtras, Router } from '@angular/router';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatSort } from '@angular/material/sort';
@@ -17,7 +23,7 @@ import {
   FormGroup,
   Validators,
 } from '@angular/forms';
-import { Subscription } from 'rxjs';
+import { debounceTime, Subject, Subscription } from 'rxjs';
 import { IComment, IGroup, IOrder } from '../../../interfaces';
 import {
   AuthService,
@@ -47,6 +53,8 @@ import { GroupLayoutComponent } from '../../../layouts/group-layout/group-layout
 export class OrderComponent implements OnInit, OnDestroy {
   isExpansionDetailRow = (i: number, row: any) =>
     row.hasOwnProperty('detailRow');
+
+  subject: Subject<any> = new Subject();
 
   orders: IOrder[] = [];
   currentPage: number;
@@ -107,7 +115,8 @@ export class OrderComponent implements OnInit, OnDestroy {
     private authService: AuthService,
     private userService: UserService,
     private groupService: GroupService,
-    private pageResetService: PageResetService
+    private pageResetService: PageResetService,
+    private cdr: ChangeDetectorRef
   ) {
     this.commentForm = this.formBuilder.group({
       comment: ['', Validators.required],
@@ -267,9 +276,7 @@ export class OrderComponent implements OnInit, OnDestroy {
 
       this.filterParams = { ...filterParams };
 
-      this.currentPage = this.route.snapshot.queryParams['page']
-        ? Number(this.route.snapshot.queryParams['page'])
-        : 1;
+      this.currentPage = 1;
 
       const queryParams: any = {
         page: this.currentPage,
@@ -454,6 +461,8 @@ export class OrderComponent implements OnInit, OnDestroy {
                     firstName: user.firstName,
                     lastName: user.lastName,
                   };
+                  this.getManagerFullName(order?.manager);
+                  this.cdr.detectChanges();
                 }
               }
             });

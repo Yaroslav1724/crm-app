@@ -1,8 +1,13 @@
-import {ChangeDetectionStrategy, Component, OnInit} from "@angular/core";
-import {FormControl, FormGroup, Validators} from "@angular/forms";
-import {AuthService} from "../../../../services";
-import {Router} from "@angular/router";
-import {MatDialogRef} from "@angular/material/dialog";
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  OnInit,
+} from '@angular/core';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { AuthService } from '../../../../services';
+import { Router } from '@angular/router';
+import { MatDialogRef } from '@angular/material/dialog';
 
 @Component({
   selector: 'login-form',
@@ -11,36 +16,41 @@ import {MatDialogRef} from "@angular/material/dialog";
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LoginFormComponent implements OnInit {
-  form: FormGroup
+  form: FormGroup;
 
-  error = false
+  error = false;
 
-  constructor(private authService: AuthService, private router: Router, private dialogRef: MatDialogRef<LoginFormComponent>) {
-  }
+  constructor(
+    private authService: AuthService,
+    private router: Router,
+    private dialogRef: MatDialogRef<LoginFormComponent>,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit() {
-    this._initForm()
+    this._initForm();
   }
 
   _initForm(): void {
     this.form = new FormGroup({
       email: new FormControl('', [Validators.required]),
       password: new FormControl('', [Validators.required]),
-    })
+    });
   }
 
   login(): void {
     this.authService.login(this.form.getRawValue()).subscribe({
       complete: () => {
-        this.error = false
+        this.error = false;
       },
       error: (err) => {
-        this.error = true
+        this.error = true;
+        this.cdr.detectChanges();
       },
       next: () => {
-        this.router.navigate(['/order'])
-        this.dialogRef.close()
-      }
-    })
+        this.router.navigate(['/order']);
+        this.dialogRef.close();
+      },
+    });
   }
 }

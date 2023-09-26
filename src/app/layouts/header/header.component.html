@@ -1,7 +1,13 @@
 <mat-toolbar class="tool-bar" color="primary">
   <span>My Application</span>
   <div class="links">
-    <div routerLink="auth/login" routerLinkActive="active">Login</div>
-    <div routerLink="" routerLinkActive="active">Register</div>
+    <div *ngIf="user">{{ user.role }}</div>
+    <div
+      routerLink="auth/login"
+      routerLinkActive="active"
+      (click)="deleteToken()"
+    >
+      Logout
+    </div>
   </div>
 </mat-toolbar>
