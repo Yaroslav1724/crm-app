@@ -23,7 +23,7 @@ import {
   FormGroup,
   Validators,
 } from '@angular/forms';
-import { debounceTime, Subject, Subscription } from 'rxjs';
+import { debounce, debounceTime, interval, Subject, Subscription } from 'rxjs';
 import { IComment, IGroup, IOrder } from '../../../interfaces';
 import {
   AuthService,
@@ -221,98 +221,100 @@ export class OrderComponent implements OnInit, OnDestroy {
   onFilterChange() {
     clearTimeout(this.filterTimeout);
 
-    this.filterTimeout = setTimeout(() => {
-      const filterParams: any = {};
+    this.filterTimeout = this.filterForm.valueChanges
+      .pipe(debounce(() => interval(500)))
+      .subscribe(() => {
+        const filterParams: any = {};
 
-      if (this.filterForm.value.name) {
-        filterParams['name'] = `like:${this.filterForm.value.name}`;
-      }
+        if (this.filterForm.value.name) {
+          filterParams['name'] = `like:${this.filterForm.value.name}`;
+        }
 
-      if (this.filterForm.value.surname) {
-        filterParams['surname'] = `like:${this.filterForm.value.surname}`;
-      }
+        if (this.filterForm.value.surname) {
+          filterParams['surname'] = `like:${this.filterForm.value.surname}`;
+        }
 
-      if (this.filterForm.value.email) {
-        filterParams['email'] = `like:${this.filterForm.value.email}`;
-      }
+        if (this.filterForm.value.email) {
+          filterParams['email'] = `like:${this.filterForm.value.email}`;
+        }
 
-      if (this.filterForm.value.phone) {
-        filterParams['phone'] = `like:${this.filterForm.value.phone}`;
-      }
+        if (this.filterForm.value.phone) {
+          filterParams['phone'] = `like:${this.filterForm.value.phone}`;
+        }
 
-      if (this.filterForm.value.age) {
-        filterParams['age'] = `eq:${this.filterForm.value.age}`;
-      }
+        if (this.filterForm.value.age) {
+          filterParams['age'] = `eq:${this.filterForm.value.age}`;
+        }
 
-      if (this.filterForm.value.course) {
-        filterParams['course'] = this.filterForm.value.course;
-      }
+        if (this.filterForm.value.course) {
+          filterParams['course'] = this.filterForm.value.course;
+        }
 
-      if (this.filterForm.value.course_type) {
-        filterParams['course_type'] = this.filterForm.value.course_type;
-      }
+        if (this.filterForm.value.course_type) {
+          filterParams['course_type'] = this.filterForm.value.course_type;
+        }
 
-      if (this.filterForm.value.course_format) {
-        filterParams['course_format'] = this.filterForm.value.course_format;
-      }
+        if (this.filterForm.value.course_format) {
+          filterParams['course_format'] = this.filterForm.value.course_format;
+        }
 
-      if (this.filterForm.value.status) {
-        filterParams['status'] = this.filterForm.value.status;
-      }
+        if (this.filterForm.value.status) {
+          filterParams['status'] = this.filterForm.value.status;
+        }
 
-      if (this.filterForm.value.groupId) {
-        filterParams['groupId'] = this.filterForm.value.groupId;
-      }
+        if (this.filterForm.value.groupId) {
+          filterParams['groupId'] = this.filterForm.value.groupId;
+        }
 
-      if (this.filterForm.value.startDate) {
-        const startDate = new Date(this.filterForm.value.startDate);
-        filterParams['startDate'] = startDate;
-      }
+        if (this.filterForm.value.startDate) {
+          const startDate = new Date(this.filterForm.value.startDate);
+          filterParams['startDate'] = startDate;
+        }
 
-      if (this.filterForm.value.endDate) {
-        const endDate = new Date(this.filterForm.value.endDate);
-        filterParams['endDate'] = endDate;
-      }
+        if (this.filterForm.value.endDate) {
+          const endDate = new Date(this.filterForm.value.endDate);
+          filterParams['endDate'] = endDate;
+        }
 
-      this.filterParams = { ...filterParams };
+        this.filterParams = { ...filterParams };
 
-      this.currentPage = 1;
+        this.currentPage = 1;
 
-      const queryParams: any = {
-        page: this.currentPage,
-        sortColumn: this.sortColumn,
-        sortDirection: this.sortDirection,
-        ...filterParams,
-      };
+        const queryParams: any = {
+          page: this.currentPage,
+          sortColumn: this.sortColumn,
+          sortDirection: this.sortDirection,
+          ...filterParams,
+        };
 
-      for (const key in filterParams) {
-        if (filterParams.hasOwnProperty(key)) {
-          const value = filterParams[key];
-          if (value || value === 0) {
-            if (typeof value === 'string' && value.startsWith('like:')) {
-              queryParams[key] = value.substring(5);
-            } else if (typeof value === 'string' && value.startsWith('eq:')) {
-              queryParams[key] = value.substring(3);
-            } else {
-              if (key === 'startDate' || key === 'endDate') {
-                const date = new Date(value);
-                queryParams[key] = date.toISOString().substring(0, 10);
+        for (const key in filterParams) {
+          if (filterParams.hasOwnProperty(key)) {
+            const value = filterParams[key];
+            if (value || value === 0) {
+              if (typeof value === 'string' && value.startsWith('like:')) {
+                queryParams[key] = value.substring(5);
+              } else if (typeof value === 'string' && value.startsWith('eq:')) {
+                queryParams[key] = value.substring(3);
               } else {
-                queryParams[key] = value;
+                if (key === 'startDate' || key === 'endDate') {
+                  const date = new Date(value);
+                  queryParams[key] = date.toISOString().substring(0, 10);
+                } else {
+                  queryParams[key] = value;
+                }
               }
             }
           }
         }
-      }
 
-      const navigationExtras: NavigationExtras = {
-        queryParams,
-      };
+        const navigationExtras: NavigationExtras = {
+          queryParams,
+        };
 
-      this.router.navigate([], navigationExtras);
+        this.router.navigate([], navigationExtras);
 
-      this.getOrders();
-    }, 400);
+        this.getOrders();
+      });
   }
 
   sortData(column: string): void {
